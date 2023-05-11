@@ -118,37 +118,53 @@ class DCEL:
         return f'dcel({self.facets})'
 
     def findHorizens(self,p):
-        horizons = []
-        if len(p.confilt_facets) == 1:
-            print(1)
-            f = p.confilt_facets[0]
-            oldLen=len(self.facets)
-            # add the 3 new facets
-            self.facets.append(Facet(f.p1, f.p2, p))
-            self.facets.append(Facet(f.p2, f.p3, p))
-            self.facets.append(Facet(f.p3, f.p1, p))
-            newLen=len(self.facets)
-            #remove the old facet
-            self.facets.remove(f)
-            #update the points that were in conflict with the deleted facet
-            for i in f.conflict_points:
-                i.confilt_facets.remove(f)
-                for j in range (oldLen-1,newLen-1):
-                    if orient(self.facets[j].p1,self.facets[j].p2,self.facets[j].p3,i) == -1:
-                        i.confilt_facets.append(self.facets[j])
-                        self.facets[j].conflict_points.append(i)
-            print(self)
+        # horizons = []
+        # if len(p.confilt_facets) == 1:
+        #     print(1)
+        #     f = p.confilt_facets[0]
+        #     oldLen=len(self.facets)
+        #     # add the 3 new facets
+        #     self.facets.append(Facet(f.p1, f.p2, p))
+        #     self.facets.append(Facet(f.p2, f.p3, p))
+        #     self.facets.append(Facet(f.p3, f.p1, p))
+        #     newLen=len(self.facets)
+        #     #remove the old facet
+        #     self.facets.remove(f)
+        #     #update the points that were in conflict with the deleted facet
+        #     for i in f.conflict_points:
+        #         i.confilt_facets.remove(f)
+        #         for j in range (oldLen-1,newLen-1):
+        #             if orient(self.facets[j].p1,self.facets[j].p2,self.facets[j].p3,i) == -1:
+        #                 i.confilt_facets.append(self.facets[j])
+        #                 self.facets[j].conflict_points.append(i)
+        #     print(self)
+        horizon_edges = []
+        for facet in p.confilt_facets:
+            horizon_edges.extend(facet.get_edges())
+        
+        for i,facet1 in enumerate(p.confilt_facets):
+            for j,facet2 in enumerate(p.confilt_facets):
+                if i != j:
+                    edge_1 = facet1.get_common_edge(facet2)
+                    edge_2 = facet2.get_common_edge(facet1)
+                    if edge_1 != None:
+                        try:
+                            horizon_edges.remove(edge_1)
+                        except:
+                            pass
+                        try:
+                            horizon_edges.remove(edge_2)
+                        except:
+                            pass
 
+        # if len(p.confilt_facets) == 2:
+        #     print(2)
 
+        # if len(p.confilt_facets) == 3:
+        #     print(3)
 
-        if len(p.confilt_facets) == 2:
-            print(2)
-
-        if len(p.confilt_facets) == 3:
-            print(3)
-
-        if len(p.confilt_facets) > 3:
-            print("more")
+        # if len(p.confilt_facets) > 3:
+        #     print("more")
 
 
 def convex_hull(points):
