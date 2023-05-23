@@ -8,8 +8,6 @@ import numpy as np
 
 def plotfig(facets, points):
     eps = 3
-    # fig = pl.figure(figsize=(10, 10))  # Increase the figure size (adjust as needed)
-    # ax = fig.add_subplot(111, projection='3d')
     ax = a3.Axes3D(pl.figure())
     ax.set_xlim(0, 300)  # Adjust the range for the x-axis
     ax.set_ylim(0, 300)  # Adjust the range for the y-axis
@@ -106,8 +104,8 @@ class Facet:
         self.outer_face = True
         self.number = number
         self.conflict_points = set()
-        self.facet_Neighbors = [None, None, None]  # first spot opisite p1, second opisite p2, third opisite p3
-        # self.neighbours = {"p1p2": None, "p1p3": None, "p2p3": None}
+        self.facet_Neighbors = [None, None, None]  # first spot opposite p1, second opposite p2, third opposite p3
+
 
     def __str__(self):
         if self.outer_face == True:
@@ -117,7 +115,6 @@ class Facet:
 
     def __repr__(self):
         if self.outer_face == True:
-            # return f"facet defined on points: {self.p1}, {self.p2}, {self.p3}"
             return f"facet {self.number}, {self.p1}, {self.p2}, {self.p3}"
         else:
             return ""
@@ -129,7 +126,7 @@ class HorizonEdge:
         self.p2 = p2
         self.facet_white = facet_white  # in conflict with point
         self.facet_gray = facet_gray  # not in conflict with point
-        # self.v1_index_in_white
+
 
 
 class DCEL:
@@ -139,21 +136,12 @@ class DCEL:
         self.facet_number = 0
         self.midpoint = None
         self.conflictpairs = 0
-        # self.num_facets = len(facets)
 
     def __str__(self):
-        print("num of outer faces is ", self.get_num_outer_faces())
         return f"decl({self.facets})"
 
     def __repr__(self):
         return f"decl({self.facets})"
-
-    def get_num_outer_faces(self):
-        n = 0
-        for i in self.facets:
-            if i.outer_face == True:
-                n += 1
-        return n
 
     def create_simplex(self, p1, p2, p3, p4):
         mid = Point((p1.x + p2.x + p3.x + p4.x) / 4, (p1.y + p2.y + p3.y + p4.y) / 4, (p1.z + p2.z + p3.z + p4.z) / 4,
@@ -332,19 +320,6 @@ class DCEL:
 
         return horizen_edges
 
-
-
-    def find_horizon_edges(self, p):
-        horizen_edges = set()
-
-        for i in p.conflict_facets:
-            if i.outer_face == True:
-                h = self.check_if_horizen(i, p)
-                if h != None:
-                    for j in h:
-                        horizen_edges.add(j)
-        return horizen_edges
-
     def check_if_horizen(self, facet, p):
         o1 = orient2(facet.facet_Neighbors[0], p)
         o2 = orient2(facet.facet_Neighbors[1], p)
@@ -356,49 +331,37 @@ class DCEL:
 
         # no edges should be in conflict with all of its neighbors
         if o1 == -1 and o2 == -1 and o3 == -1:
-            # l = []
-            # for i in facet.facet_Neighbors:
-            #     if i not in p.conflict_facets:
-            #         l.append(self.check_if_horizen(i, p))
             return None
+
         # 1 edge
         elif o1 == 1 and o2 == -1 and o3 == -1:
             m = self.find_shared_points(facet, facet.facet_Neighbors[0])
-            # return [HorizonEdge(facet.p2, facet.p3, facet, facet.facet_Neighbors[0])]
             return [HorizonEdge(m[0], m[1], facet, facet.facet_Neighbors[0])]
 
         elif o1 == -1 and o2 == 1 and o3 == -1:
             m = self.find_shared_points(facet, facet.facet_Neighbors[1])
-            # return[HorizonEdge(facet.p1, facet.p3, facet, facet.facet_Neighbors[1])]
             return [HorizonEdge(m[0], m[1], facet, facet.facet_Neighbors[1])]
 
         elif o1 == -1 and o2 == -1 and o3 == 1:
             m = self.find_shared_points(facet, facet.facet_Neighbors[2])
-            # return [HorizonEdge(facet.p1, facet.p2, facet, facet.facet_Neighbors[2])]
             return [HorizonEdge(m[0], m[1], facet, facet.facet_Neighbors[2])]
 
         # 2 edge
         elif o1 == 1 and o2 == 1 and o3 == -1:
             m1 = self.find_shared_points(facet, facet.facet_Neighbors[0])
             m2 = self.find_shared_points(facet, facet.facet_Neighbors[1])
-            # return [HorizonEdge(facet.p2, facet.p3, facet, facet.facet_Neighbors[0]),
-            #         HorizonEdge(facet.p1, facet.p3, facet, facet.facet_Neighbors[1])]
             return [HorizonEdge(m1[0], m1[1], facet, facet.facet_Neighbors[0]),
                     HorizonEdge(m2[0], m2[1], facet, facet.facet_Neighbors[1])]
 
         elif o1 == -1 and o2 == 1 and o3 == 1:
             m1 = self.find_shared_points(facet, facet.facet_Neighbors[1])
             m2 = self.find_shared_points(facet, facet.facet_Neighbors[2])
-            # return [HorizonEdge(facet.p1, facet.p3, facet, facet.facet_Neighbors[1]),
-            #         HorizonEdge(facet.p1, facet.p2, facet, facet.facet_Neighbors[2])]
             return [HorizonEdge(m1[0], m1[1], facet, facet.facet_Neighbors[1]),
                     HorizonEdge(m2[0], m2[1], facet, facet.facet_Neighbors[2])]
 
         elif o1 == 1 and o2 == -1 and o3 == 1:
             m1 = self.find_shared_points(facet, facet.facet_Neighbors[0])
             m2 = self.find_shared_points(facet, facet.facet_Neighbors[2])
-            # return [HorizonEdge(facet.p2, facet.p3, facet, facet.facet_Neighbors[0]),
-            #         HorizonEdge(facet.p1, facet.p2, facet, facet.facet_Neighbors[2])]
             return [HorizonEdge(m1[0], m1[1], facet, facet.facet_Neighbors[0]),
                     HorizonEdge(m2[0], m2[1], facet, facet.facet_Neighbors[2])]
 
@@ -407,72 +370,9 @@ class DCEL:
             m1 = self.find_shared_points(facet, facet.facet_Neighbors[0])
             m2 = self.find_shared_points(facet, facet.facet_Neighbors[1])
             m3 = self.find_shared_points(facet, facet.facet_Neighbors[2])
-            # return [HorizonEdge(facet.p2, facet.p3, facet, facet.facet_Neighbors[0]),
-            #         HorizonEdge(facet.p1, facet.p3, facet, facet.facet_Neighbors[1]),
-            #         HorizonEdge(facet.p1, facet.p2, facet, facet.facet_Neighbors[2])]
             return [HorizonEdge(m1[0], m1[1], facet, facet.facet_Neighbors[0]),
                     HorizonEdge(m2[0], m2[1], facet, facet.facet_Neighbors[1]),
                     HorizonEdge(m3[0], m3[1], facet, facet.facet_Neighbors[2])]
-
-    def create_new_facets_and_update_conflict_points(self, horizon_edges, p):
-        new_facets = set()
-        for i in horizon_edges:
-            # create new facet
-            if orient1(i.p1, i.p2, p, self.midpoint) == 1:
-                self.facets.append(Facet(i.p1, i.p2, p, self.facet_number))
-                self.facet_number += 1
-            else:
-                self.facets.append(Facet(i.p1, p, i.p2, self.facet_number))
-                self.facet_number += 1
-
-            # update gray facets neighbor that changed
-            if i.facet_gray.facet_Neighbors[0] == i.facet_white:
-                i.facet_gray.facet_Neighbors[0] = self.facets[-1]
-            elif i.facet_gray.facet_Neighbors[1] == i.facet_white:
-                i.facet_gray.facet_Neighbors[1] = self.facets[-1]
-            elif i.facet_gray.facet_Neighbors[2] == i.facet_white:
-                i.facet_gray.facet_Neighbors[2] = self.facets[-1]
-
-            # new facet insert the facet neighbor that is the gray facet
-            if self.facets[-1].p1 != i.p1 and self.facets[-1].p1 != i.p2:
-                self.facets[-1].facet_Neighbors[0] = i.facet_gray
-
-            elif self.facets[-1].p2 != i.p1 and self.facets[-1].p2 != i.p2:
-                self.facets[-1].facet_Neighbors[1] = i.facet_gray
-
-            elif self.facets[-1].p3 != i.p1 and self.facets[-1].p3 != i.p2:
-                self.facets[-1].facet_Neighbors[2] = i.facet_gray
-
-            new_facets.add(self.facets[-1])
-
-            # update conflict points
-            for j in i.facet_white.conflict_points:
-                if j != p:
-                    try:
-                        j.conflict_facets.remove(i.facet_white)
-                    except:
-                        pass
-                    if orient2(self.facets[-1], j) == -1:
-                        j.conflict_facets.add(self.facets[-1])
-                        self.facets[-1].conflict_points.add(j)
-                        self.conflictpairs += 1
-            # i.facet_white.outer_face = False
-            for j in i.facet_gray.conflict_points:
-                if j != p:
-                    try:
-                        j.conflict_facets.remove(i.facet_white)
-                    except:
-                        pass
-                    if orient2(self.facets[-1], j) == -1:
-                        j.conflict_facets.add(self.facets[-1])
-                        self.facets[-1].conflict_points.add(j)
-                        self.conflictpairs += 1
-
-        # update new facets neighbors that arent grey
-        for i in new_facets:
-            for j in new_facets:
-                if i != j:
-                    self.share_edge(i, j)
 
     def create_new_facets_and_update_conflict_points2(self, horizon_edges, p):
         new_facets = []       
@@ -516,7 +416,7 @@ class DCEL:
                         j.conflict_facets.add(self.facets[-1])
                         self.facets[-1].conflict_points.add(j)
                         self.conflictpairs += 1
-            # i.facet_white.outer_face = False
+
             for j in i.facet_gray.conflict_points:
                 if j != p:
                     try:
@@ -576,33 +476,24 @@ class DCEL:
         matches = []
 
         if face1.p1 == face2.p1:
-            # matches.append((1, 1))
             matches.append(face1.p1)
         elif face1.p1 == face2.p2:
             matches.append(face1.p1)
-            # matches.append((1, 2))
         elif face1.p1 == face2.p3:
             matches.append(face1.p1)
-            # matches.append((1, 3))
 
         if face1.p2 == face2.p1:
-            # matches.append((2, 1)
             matches.append(face1.p2)
         elif face1.p2 == face2.p2:
-            # matches.append((2, 2))
             matches.append(face1.p2)
         elif face1.p2 == face2.p3:
-            # matches.append((2, 3))
             matches.append(face1.p2)
 
         if face1.p3 == face2.p1:
-            # matches.append((3, 1))
             matches.append(face1.p3)
         elif face1.p3 == face2.p2:
-            # matches.append((3, 2))
             matches.append(face1.p3)
         elif face1.p3 == face2.p3:
-            # matches.append((3, 3))
             matches.append(face1.p3)
 
         return matches
@@ -622,7 +513,7 @@ class DCEL:
                 self.find_neighbors(i)
 
     def final_answer(self):
-        print("num facets created is: ", len(self.facets), "num of total conflict pairs is: ", self.conflictpairs)
+        # print("num facets created is: ", len(self.facets), "num of total conflict pairs is: ", self.conflictpairs)
         ans = []
         for i in self.facets:
             if i.outer_face == True:
@@ -632,13 +523,7 @@ class DCEL:
                     ans.append((i.p2.index, i.p3.index, i.p1.index))
                 elif i.p3.index < i.p1.index and i.p3.index < i.p2.index:
                     ans.append((i.p3.index, i.p1.index, i.p2.index))
-        # print("********")
-        # for i in ans:
-        #     print(i)
-        # print("********")
         sorted_lst = sorted(ans, key=lambda x: (x[0], x[1]))
-        # sorted_lst2 = sorted(sorted_lst1, key=lambda x:x[1])
-
         return sorted_lst
 
 
@@ -647,37 +532,16 @@ def convex_hull(points):
 
     # create the pyramid and add the original conflicts and the facet_neighbors
     dcel.create_simplex(points[0], points[1], points[2], points[3])
-    # print(dcel)
     # plotfig(dcel.facets,dcel.points)
-    iter = 0
     for i in range(4, len(points)):
-        iter += 1
-        print(iter)
         if len(points[i].conflict_facets) == 0:
-            # print("do nothing")
             continue
         else:
-            # print("i have conflicts")
-            # h = dcel.find_horizon_edges(points[i])
             h = dcel.find_horizen_edges2(points[i])
-            #dcel.create_new_facets_and_update_conflict_points(h, points[i])
             if h!= None:
                 dcel.create_new_facets_and_update_conflict_points2(h,points[i])
                 dcel.delete_faces(points[i])
-            # dcel.check_neighbors()
         # plotfig(dcel.facets,dcel.points)
-
-
-    # print(dcel)
-    # print()
-    # edges = set()
-    # for i in dcel.facets:
-    #     if i.outer_face == True:
-    #         edges.add((i.p1, i.p2))
-    #         edges.add((i.p1, i.p3))
-    #         edges.add((i.p3, i.p2))
-    # for i in edges:
-    #     print(i)
     # plotfig(dcel.facets,points)
     ans = dcel.final_answer()
     for i in ans:
@@ -706,12 +570,7 @@ def readFile(filename):
 
 def main():
     plist = readFile("sampleinput.txt")
-    # np.random.shuffle(plist)
-    # print("printing list of points")
-    # print("********")
-    # for i in plist:
-    #     print(i)
-    # print("********")
+    np.random.shuffle(plist)
     convex_hull(plist)
 
 
